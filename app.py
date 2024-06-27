@@ -4,11 +4,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, FunctionTransformer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
 from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
 
 # Input dari pengguna menggunakan Streamlit
+st.title("Prediksi Kejadian Kekambuhan Kanker Payudara")
 age = st.selectbox('Umur:', ['10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89', '90-99'])
 menopause = st.selectbox('Menopause:', ['lt40', 'ge40', 'premeno'])
 tumor_size = st.selectbox('Ukuran Tumor:', ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59'])
@@ -68,3 +68,27 @@ accuracy_nb = accuracy_score(y_test, y_pred_nb)
 
 # Tampilkan hasil akurasi di Streamlit
 st.write(f"Akurasi model Naive Bayes: {accuracy_nb:.2f}")
+
+# Data untuk prediksi
+data = {
+    'age': age,
+    'menopause': menopause,
+    'tumor-size': tumor_size,
+    'inv-nodes': inv_nodes,
+    'node-caps': node_caps,
+    'deg-malig': deg_malig,
+    'breast': breast,
+    'breast-quad': breast_quad,
+    'irradiat': irradiat
+}
+
+# Membuat dataframe untuk prediksi
+df = pd.DataFrame([data])
+
+# Tombol untuk melakukan prediksi
+if st.button('Submit'):
+    prediction = pipeline_nb.predict(df)[0]
+    if prediction == 'no-recurrence-events':
+        st.success('Tidak ada kejadian kekambuhan.')
+    else:
+        st.error('Ada kejadian kekambuhan.')
