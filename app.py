@@ -54,7 +54,7 @@ preprocessor = ColumnTransformer(
 # Pipeline untuk Naive Bayes
 pipeline_nb = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    ('to_dense', (lambda x: x.toarray(), accept_sparse=True)),
+    ('to_dense', FunctionTransformer(lambda x: x.toarray(), accept_sparse=True)),
     ('classifier', GaussianNB())
 ])
 
