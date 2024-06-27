@@ -1,6 +1,12 @@
 import streamlit as st
 import pandas as pd
-import joblib
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.naive_bayes import GaussianNB
 
 age = st.selectbox('Umur:', ['10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89', '90-99'])
 menopause = st.selectbox('Menopause:', ['lt40', 'ge40', 'premeno'])
@@ -12,14 +18,6 @@ breast = st.selectbox('Letak Tumor Payudara:', ['left', 'right'])
 breast_quad = st.selectbox('Letak Quadran Payudara:', ['left-up', 'left-low', 'right-up', 'right-low', 'central'])
 irradiat = st.selectbox('Pengobatan Radiasi:', ['yes', 'no'])
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.naive_bayes import GaussianNB
 
 # Misalkan df_breast_cancer adalah DataFrame yang sudah ada
 df_breast_cancer = pd.read_csv('data-clean.csv')
