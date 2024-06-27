@@ -3,7 +3,8 @@ import pandas as pd
 import joblib
 
 # Memuat model dari file pickle
-model = joblib.load('naive_bayes_model.pkl')
+# model = joblib.load('naive_bayes_model.pkl')
+model = pd.read_csv("data-clean.csv")
 
 # Membuat antarmuka pengguna
 st.title('Prediksi Kanker Payudara')
