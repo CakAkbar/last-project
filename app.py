@@ -2,13 +2,6 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Memuat model dari file pickle
-# model = joblib.load('naive_bayes_model.pkl')
-model = pd.read_csv("data-clean.csv")
-
-# Membuat antarmuka pengguna
-st.title('Prediksi Kanker Payudara')
-
 age = st.selectbox('Umur:', ['10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89', '90-99'])
 menopause = st.selectbox('Menopause:', ['lt40', 'ge40', 'premeno'])
 tumor_size = st.selectbox('Ukuran Tumor:', ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59'])
@@ -19,32 +12,58 @@ breast = st.selectbox('Letak Tumor Payudara:', ['left', 'right'])
 breast_quad = st.selectbox('Letak Quadran Payudara:', ['left-up', 'left-low', 'right-up', 'right-low', 'central'])
 irradiat = st.selectbox('Pengobatan Radiasi:', ['yes', 'no'])
 
-if st.button('Prediksi'):
-    # Mengambil data dari form
-    data = {
-        'age': age,
-        'menopause': menopause,
-        'tumor-size': tumor_size,
-        'inv-nodes': inv_nodes,
-        'node-caps': node_caps,
-        'deg-malig': deg_malig,
-        'breast': breast,
-        'breast-quad': breast_quad,
-        'irradiat': irradiat
-    }
-    
-    # Membuat dataframe untuk prediksi
-    df = pd.DataFrame([data])
-    
-    # Melakukan prediksi
-    prediction = model.predict(df)[0]
-    
-    # Menampilkan hasil prediksi
-    if prediction == 'no-recurrence-events':
-        st.success('Tidak ada kejadian kekambuhan.')
-    elif prediction == 'recurrence-events':
-        st.warning('Ada kejadian kekambuhan.')
-    else:
-        st.info('Hasil tidak diketahui.')
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.naive_bayes import GaussianNB
 
-# Jalankan dengan perintah: streamlit run app.py
+# Misalkan df_breast_cancer adalah DataFrame yang sudah ada
+df_breast_cancer = pd.read_csv('data-clean.csv')
+
+# Menambahkan kolom 'class' berdasarkan kondisi 'deg-malig'
+df_breast_cancer['class'] = df_breast_cancer.apply(lambda row: 'no-recurrence-events' if row['deg-malig'] < 2 else 'recurrence-events', axis=1)
+
+# Kolom target
+target_column = 'class'
+
+# Memisahkan fitur (X) dan label (y)
+X = df_breast_cancer.drop(target_column, axis=1)
+y = df_breast_cancer[target_column]
+
+# Membagi dataset menjadi data latih dan data uji (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Mengidentifikasi kolom kategorikal dan biner
+categorical_features = ['age', 'menopause', 'tumor-size', 'inv-nodes', 'breast-quad']
+binary_features = ['node-caps', 'breast', 'irradiat']
+
+# Membuat transformer untuk preprocessing
+categorical_transformer = OneHotEncoder(drop='first', handle_unknown='ignore')
+binary_transformer = OneHotEncoder(drop='first', handle_unknown='ignore')
+
+# Menggabungkan transformer dalam sebuah kolom transformer
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('cat', categorical_transformer, categorical_features),
+        ('bin', binary_transformer, binary_features)
+    ],
+    remainder='passthrough'
+)
+# Pipeline untuk Naive Bayes
+pipeline_nb = Pipeline(steps=[
+    ('preprocessor', preprocessor),
+    ('to_dense', (lambda x: x.toarray(), accept_sparse=True)),
+    ('classifier', GaussianNB())
+])
+
+# Melatih model Naive Bayes dengan data latih
+pipeline_nb.fit(X_train, y_train)
+
+# Mengevaluasi model Naive Bayes dengan data uji
+y_pred_nb = pipeline_nb.predict(X_test)
+accuracy_nb = accuracy_score(y_test, y_pred_nb)
+print(f"Akurasi model Naive Bayes: {accuracy_nb:.2f}")
